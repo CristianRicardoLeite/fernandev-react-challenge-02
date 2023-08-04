@@ -1,6 +1,6 @@
 import { login } from './utils';
 import './index.css';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // Instruções:
 // * Você tem um formulário de login INCOMPLETO
@@ -15,23 +15,70 @@ import { useState } from 'react';
 // todo - Mostre um alerta caso o login seja efetuado com sucesso (javascript alert). Investigue a função login() para entender como ter sucesso na requisição.
 
 export default function LoginForm() {
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorText, setErrorText] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  function handleEmailChange(event) {
+    const newEmail = event.target.value;
+    setEmail(newEmail);
+    disableLogin(newEmail, password);
+  }
+
+  function handlePasswordChange(event) {
+    const newPassword = event.target.value;
+    setPassword(newPassword);
+    disableLogin(email, newPassword);
+  }
+
+  function disableLogin(newEmail, newPassword) {
+    if (newEmail === '' || newPassword.length < 6) {
+      setIsButtonDisabled(true);
+    } else {
+      setIsButtonDisabled(false);
+    }
+  }
+
+  async function handleLoginClick() {
+    if (isButtonDisabled || isLoggingIn) {
+      return;
+    }
+
+    setIsLoggingIn(true);
+
+    try {
+      const response = await login(password, email);
+      alert(response.message); // Exibe mensagem de sucesso
+      setErrorMessage('');
+    } catch (error) {
+      alert(error.message); // Exibe mensagem de erro
+      setErrorMessage('Seu login ou sua senha estão incorretos, verifique e tente novamente.');
+    }
+
+    setIsLoggingIn(false);
+  }
+
+
+
   return (
     <div className='wrapper'>
       <div className='login-form'>
         <h1>Login Form 🐞</h1>
-        {/* Coloque a mensagem de erro de login na div abaixo. Mostre a div somente se houver uma mensagem de erro. */}
-        <div className='errorMessage'></div>
+        {errorText && <div className='errorMessage'>{errorMessage}</div>}
         <div className='row'>
           <label htmlFor={'email'}>Email</label>
-          <input id={'email'} type={'email'} autoComplete='off' />
+          <input id='email' type='email' value={email} onChange={handleEmailChange} autoComplete='off' />
         </div>
         <div className='row'>
           <label htmlFor={'password'}>Password</label>
-          <input id={'password'} type={'password'} />
+          <input id='password' type='password' value={password} onChange={handlePasswordChange} />
         </div>
-
         <div className='button'>
-          <button>Login</button>
+          <button type='submit' onClick={handleLoginClick} disabled={isButtonDisabled || isLoggingIn}>Login</button>
         </div>
       </div>
     </div>
